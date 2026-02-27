@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monte Sião - Gestão de Célula</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --gold: #d9a441;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        .app-container { width: 95%; max-width: 500px; background: var(--card); border-radius: 24px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+
+        /* Página Inicial */
+        #home-page { text-align: center; }
+        .logo-header { margin-bottom: 40px; }
+        .logo-header h1 { font-weight: 600; font-size: 1.5rem; margin-bottom: 5px; color: var(--primary); }
+        .logo-header p { color: #64748b; font-size: 0.9rem; }
+
+        .menu-grid { display: grid; gap: 15px; }
+        .menu-card { 
+            background: white; border: 1px solid #e2e8f0; padding: 25px; border-radius: 16px; 
+            cursor: pointer; transition: all 0.3s; text-align: left;
+        }
+        .menu-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1); }
+        .menu-card h3 { margin: 0; font-size: 1.1rem; }
+        .menu-card p { margin: 5px 0 0; font-size: 0.85rem; color: #64748b; }
+
+        /* Formulários */
+        .page { display: none; }
+        .header-action { display: flex; align-items: center; margin-bottom: 25px; }
+        .btn-back { background: #f1f5f9; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; margin-right: 15px; font-weight: 600; }
+        
+        label { display: block; margin: 15px 0 5px; font-size: 0.85rem; font-weight: 600; color: #475569; }
+        input, textarea { 
+            width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; 
+            background: #f8fafc; font-size: 1rem; transition: 0.2s;
+        }
+        input:focus { outline: none; border-color: var(--primary); background: white; }
+
+        .btn-add { background: transparent; color: var(--primary); border: 1px dashed var(--primary); padding: 8px; width: 100%; border-radius: 8px; cursor: pointer; margin-top: 10px; font-weight: 600; }
+        .btn-main { 
+            width: 100%; background: var(--primary); color: white; border: none; 
+            padding: 16px; border-radius: 12px; cursor: pointer; font-weight: 600; margin-top: 30px; 
+            font-size: 1rem; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+        }
+
+        /* Preview Oculto */
+        #capture-area { position: absolute; left: -9999px; width: 500px; background: white; padding: 30px; border-radius: 10px; }
+        .output-card { border: 2px solid #e2e8f0; border-radius: 15px; padding: 25px; }
+        .output-header { text-align: center; border-bottom: 2px solid var(--gold); margin-bottom: 20px; padding-bottom: 10px; }
+        .output-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <div id="home-page" class="page" style="display: block;">
+        <div class="logo-header">
+            <h1>Monte Sião</h1>
+            <p>Programação de Célula</p>
+        </div>
+        <div class="menu-grid">
+            <div class="menu-card" onclick="goTo('estudo-page')">
+                <h3>📖 Estudo da Semana</h3>
+                <p>Gere um PDF com o roteiro da palavra.</p>
+            </div>
+            <div class="menu-card" onclick="goTo('kairos-page')">
+                <h3>⏳ Célula Kairos</h3>
+                <p>Gere a imagem da escala de serviço.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="estudo-page" class="page">
+        <div class="header-action">
+            <button class="btn-back" onclick="goTo('home-page')">←</button>
+            <h2 style="margin:0; font-size: 1.2rem;">Roteiro de Estudo</h2>
+        </div>
+        
+        <label>Título</label>
+        <input type="text" id="estudo_titulo" placeholder="Ex: Maturidade Cristã">
+        
+        <label>Referências</label>
+        <input type="text" id="estudo_ref" placeholder="Ex: Efésios 4:13-15">
+        
+        <label>Resumo</label>
+        <textarea id="estudo_resumo" rows="3"></textarea>
+
+        <label>Perguntas</label>
+        <div id="questions-list">
+            <input type="text" class="q-input" style="margin-bottom: 8px;" placeholder="Pergunta 1">
+        </div>
+        <button class="btn-add" onclick="addQuestion()">+ Nova Pergunta</button>
+
+        <label>Conclusão</label>
+        <textarea id="estudo_conc" rows="2"></textarea>
+
+        <button class="btn-main" onclick="gerarPDF()">Gerar Estudo em PDF</button>
+    </div>
+
+    <div id="kairos-page" class="page">
+        <div class="header-action">
+            <button class="btn-back" onclick="goTo('home-page')">←</button>
+            <h2 style="margin:0; font-size: 1.2rem;">Escala Kairos</h2>
+        </div>
+
+        <label>🤝 Recepção</label>
+        <input type="text" id="k_recepcao">
+        
+        <label>🙏 Oração Inicial</label>
+        <input type="text" id="k_oracao">
+
+        <label>📦 Caixinha da Fé</label>
+        <input type="text" id="k_caixinha">
+
+        <label>🧺 Cesta do Amor</label>
+        <input type="text" id="k_cesta">
+
+        <label>💰 Oferta</label>
+        <input type="text" id="k_oferta">
+
+        <label>🎸 Música</label>
+        <input type="text" id="k_musica">
+
+        <label>🎤 Compartilhamento (Palavra)</label>
+        <input type="text" id="k_compartilhamento" placeholder="Quem vai falar?">
+
+        <button class="btn-main" onclick="gerarImagem()">Baixar Imagem para WhatsApp</button>
+    </div>
+
+</div>
+
+<div id="capture-area">
+    <div id="render-box" class="output-card"></div>
+</div>
+
+<script>
+    function goTo(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+        document.getElementById(pageId).style.display = 'block';
+    }
+
+    function addQuestion() {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'q-input';
+        input.style.marginBottom = '8px';
+        input.placeholder = `Pergunta ${document.querySelectorAll('.q-input').length + 1}`;
+        document.getElementById('questions-list').appendChild(input);
+    }
+
+    async function gerarPDF() {
+        const render = document.getElementById('render-box');
+        const qs = Array.from(document.querySelectorAll('.q-input')).map(i => i.value).filter(v => v !== '');
+        
+        render.innerHTML = `
+            <div class="output-header">
+                <h1 style="color:#2563eb; margin:0">MONTE SIÃO</h1>
+                <p style="color:#d9a441; font-weight:bold; margin:5px 0">ESTUDO DE CÉLULA</p>
+            </div>
+            <h3 style="text-align:center">${document.getElementById('estudo_titulo').value}</h3>
+            <p style="text-align:center; font-style:italic; color:#64748b">${document.getElementById('estudo_ref').value}</p>
+            <p><strong>Resumo:</strong> ${document.getElementById('estudo_resumo').value}</p>
+            <p><strong>Perguntas:</strong></p>
+            <ul>${qs.map(q => `<li>${q}</li>`).join('')}</ul>
+            <p><strong>Conclusão:</strong> ${document.getElementById('estudo_conc').value}</p>
+        `;
+
+        const canvas = await html2canvas(render);
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 190, 0);
+        pdf.save("Estudo_MonteSiao.pdf");
+    }
+
+    async function gerarImagem() {
+        const render = document.getElementById('render-box');
+        const fields = [
+            ['🤝 Recepção', 'k_recepcao'],
+            ['🙏 Oração Inicial', 'k_oracao'],
+            ['📦 Caixinha da Fé', 'k_caixinha'],
+            ['🧺 Cesta do Amor', 'k_cesta'],
+            ['💰 Oferta', 'k_oferta'],
+            ['🎸 Música', 'k_musica'],
+            ['🎤 Compartilhamento', 'k_compartilhamento']
+        ];
+
+        render.innerHTML = `
+            <div class="output-header">
+                <h2 style="color:#2563eb; margin:0">CÉLULA KAIROS</h2>
+                <p style="color:#d9a441; margin:5px 0">Escala de Serviço</p>
+            </div>
+            ${fields.map(f => `
+                <div class="output-row">
+                    <span>${f[0]}</span>
+                    <strong>${document.getElementById(f[1]).value || '---'}</strong>
+                </div>
+            `).join('')}
+            <p style="text-align:center; font-size:12px; margin-top:30px; color:#64748b">Monte Sião • 2026</p>
+        `;
+
+        const canvas = await html2canvas(render);
+        const link = document.createElement('a');
+        link.download = 'Escala_Kairos.jpg';
+        link.href = canvas.toDataURL('image/jpeg', 0.9);
+        link.click();
+    }
+</script>
+
+</body>
+</html>
