@@ -34,7 +34,7 @@
 
         .menu-grid { display: grid; gap: 15px; }
         .menu-card { 
-            background: white; border: 1px solid #e2e8f0; padding: 25px; border-radius: 16px; 
+            background: gainsboro; border: 1px solid #e2e8f0; padding: 25px; border-radius: 16px; 
             cursor: pointer; transition: all 0.3s; text-align: left;
         }
         .menu-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1); }
@@ -49,7 +49,7 @@
         label { display: block; margin: 15px 0 5px; font-size: 0.85rem; font-weight: 600; color: #475569; }
         input, textarea, select { 
             width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; 
-            background: #f8fafc; font-size: 1rem; transition: 0.2s;
+            background: gainsboro; font-size: 1rem; transition: 0.2s;
         }
         input:focus { outline: none; border-color: var(--primary); background: white; }
 
@@ -70,7 +70,7 @@
         
         .q-container { margin-bottom: 15px; border-left: 3px solid var(--primary); padding-left: 10px; }
 
-        .admin-list { margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; max-height: 150px; overflow-y: auto; }
+        .admin-list { margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; max-height: 250px; overflow-y: auto; }
         .admin-item { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; }
         .admin-btns button { padding: 4px 8px; border-radius: 5px; border: none; cursor: pointer; margin-left: 5px; font-size: 0.7rem; }
         .btn-edit { background: var(--primary); color: white; }
@@ -84,7 +84,7 @@
         .modal-content { background: white; max-width: 600px; margin: 0 auto; border-radius: 15px; padding: 20px; position: relative; }
         .close-modal { position: absolute; top: 10px; right: 20px; font-size: 24px; cursor: pointer; }
 
-        /* Layout Moderno Documental */
+        /* Layout Documental */
         .doc-layout { color: #334155; line-height: 1.6; }
         .doc-header { border-bottom: 2px solid #2563eb; margin-bottom: 20px; }
         .doc-section { margin-top: 15px; font-weight: bold; color: #2563eb; text-transform: uppercase; font-size: 0.8rem; }
@@ -104,6 +104,7 @@
     
     <div id="home-page" class="page" style="display: block;">
         <div class="logo-header">
+           
             <h1>Monte Sião</h1>
             <p>Programação de Célula</p>
         </div>
@@ -148,8 +149,7 @@
         <button class="btn-main" style="background:#64748b" onclick="visualizarEstudo()">Visualizar Estudo</button>
         <button class="btn-main" onclick="gerarPDF()">Baixar Estudo em PDF</button>
         <div id="area-arquivo-extra"></div>
-        <button class="btn-main btn-whatsapp" onclick="compartilharWhatsAppEstudo()">Enviar para WhatsApp</button>
-    </div>
+        </div>
 
     <div id="admin-page" class="page">
         <div class="header-action">
@@ -157,42 +157,47 @@
             <h2 id="admin-title" style="margin:0; font-size: 1.2rem;">Visualizar Estudos</h2>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-            <button class="btn-main" id="tab-view" onclick="mudarAbaAdmin('view')" style="margin-top:0">Visualizar</button>
-            <button class="btn-main btn-secondary" id="tab-add" onclick="mudarAbaAdmin('add')" style="margin-top:0">Criar / Anexar</button>
+        <div style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
+            <button class="btn-main" id="tab-view" onclick="mudarAbaAdmin('view')" style="margin-top:0; padding: 12px; font-size:0.9rem;">Visualizar Estudos</button>
+            <button class="btn-main btn-secondary" id="tab-attach" onclick="mudarAbaAdmin('attach')" style="margin-top:0; padding: 12px; font-size:0.9rem;">Anexar</button>
+            <button class="btn-main btn-secondary" id="tab-create" onclick="mudarAbaAdmin('create')" style="margin-top:0; padding: 12px; font-size:0.9rem;">Criar Estudo Semanal</button>
         </div>
 
         <div id="admin-view-section">
-            <label>Gerenciar Publicações</label>
-            <div id="lista-estudos-admin" class="admin-list" style="max-height: 300px;"></div>
+            <label>Todos os Estudos Cadastrados</label>
+            <div id="lista-estudos-admin" class="admin-list"></div>
         </div>
         
         <div id="admin-add-section" style="display: none;">
             <input type="hidden" id="edit_id">
-            <label>Título do Estudo</label>
+            <input type="hidden" id="tipo_estudo" value="texto"> <label>Título da Publicação</label>
             <input type="text" id="adm_titulo" placeholder="Ex: O Poder da Oração">
             
             <label>Referências Bíblicas</label>
             <input type="text" id="adm_ref" placeholder="Ex: Mateus 6:5-13">
 
-            <label>Anexar PDF/Word (Estudo Completo)</label>
-            <input type="file" id="adm_file_input">
-            <input type="hidden" id="adm_file_link">
-            
-            <label>Resumo/Introdução</label>
-            <textarea id="adm_resumo" rows="3"></textarea>
-
-            <label>Perguntas para Compartilhamento</label>
-            <div id="questions-list-admin">
-                <div class="q-container">
-                    <input type="text" class="q-input-adm" placeholder="Pergunta 1">
-                    <textarea class="r-input-adm" rows="2" style="margin-top:5px" placeholder="Resposta sugerida"></textarea>
-                </div>
+            <div id="grupo-arquivo" style="display: none; margin-top: 15px;">
+                <label style="color:var(--gold)">Anexar PDF/Word (Pronto pelo Pastor)</label>
+                <input type="file" id="adm_file_input">
+                <input type="hidden" id="adm_file_link">
             </div>
-            <button class="btn-add" onclick="addQuestionAdmin()">+ Nova Pergunta</button>
+            
+            <div id="grupo-estudo-texto">
+                <label>Resumo/Introdução</label>
+                <textarea id="adm_resumo" rows="3"></textarea>
 
-            <label>Conclusão</label>
-            <textarea id="adm_conc" rows="2"></textarea>
+                <label>Perguntas para Compartilhamento</label>
+                <div id="questions-list-admin">
+                    <div class="q-container">
+                        <input type="text" class="q-input-adm" placeholder="Pergunta 1">
+                        <textarea class="r-input-adm" rows="2" style="margin-top:5px" placeholder="Resposta sugerida"></textarea>
+                    </div>
+                </div>
+                <button class="btn-add" onclick="addQuestionAdmin()">+ Nova Pergunta</button>
+
+                <label>Conclusão</label>
+                <textarea id="adm_conc" rows="2"></textarea>
+            </div>
 
             <button id="btn-salvar-admin" class="btn-main" onclick="salvarEstudo()">Publicar Estudo</button>
         </div>
@@ -211,12 +216,12 @@
             <label>😁 Dinâmica</label><input type="text" id="k_dinamica">
             <label>💰 Oferta</label><input type="text" id="k_oferta">
             <label>🍞 Cesta do Amor</label><input type="text" id="k_cesta">
-            <label>📦 Pedidos</label><input type="text" id="k_caixinha">
+            <label>✍ Pedidos de Oração</label><input type="text" id="k_caixinha">
             <label>🎤 Compartilhamento</label><input type="text" id="k_compartilhamento">
         </div>
 
-        <button class="btn-main" onclick="gerarImagem()">Baixar Imagem</button>
-        <button class="btn-main btn-whatsapp" onclick="compartilharWhatsAppEscala()">Enviar para WhatsApp</button>
+        <button class="btn-main" onclick="gerarImagem()">Baixar Imagem da Escala</button>
+        <button class="btn-main btn-whatsapp" onclick="compartilharWhatsAppEscala()">Compartilhar no WhatsApp</button>
     </div>
 
 </div>
@@ -269,20 +274,40 @@
         document.getElementById(pageId).style.display = 'block';
     }
 
-    // FUNÇÃO ADICIONADA: Alternar Abas no Administrador
+    // LÓGICA_ADMINISTRADOR
     function mudarAbaAdmin(aba) {
+        // Oculta tudo
+        document.getElementById('admin-view-section').style.display = 'none';
+        document.getElementById('admin-add-section').style.display = 'none';
+
+        
+        document.getElementById('tab-view').classList.add('btn-secondary');
+        document.getElementById('tab-attach').classList.add('btn-secondary');
+        document.getElementById('tab-create').classList.add('btn-secondary');
+
         if (aba === 'view') {
             document.getElementById('admin-view-section').style.display = 'block';
-            document.getElementById('admin-add-section').style.display = 'none';
             document.getElementById('tab-view').classList.remove('btn-secondary');
-            document.getElementById('tab-add').classList.add('btn-secondary');
             document.getElementById('admin-title').innerText = "Visualizar Estudos";
         } else {
-            document.getElementById('admin-view-section').style.display = 'none';
             document.getElementById('admin-add-section').style.display = 'block';
-            document.getElementById('tab-add').classList.remove('btn-secondary');
-            document.getElementById('tab-view').classList.add('btn-secondary');
-            document.getElementById('admin-title').innerText = document.getElementById('edit_id').value ? "Editar Estudo" : "Novo Estudo";
+            
+            if (aba === 'attach') {
+                document.getElementById('tab-attach').classList.remove('btn-secondary');
+                document.getElementById('admin-title').innerText = document.getElementById('edit_id').value ? "Editar Anexo" : "Anexar Arquivo";
+                
+                document.getElementById('grupo-arquivo').style.display = 'block';
+                document.getElementById('grupo-estudo-texto').style.display = 'none';
+                document.getElementById('tipo_estudo').value = 'anexo';
+            } 
+            else if (aba === 'create') {
+                document.getElementById('tab-create').classList.remove('btn-secondary');
+                document.getElementById('admin-title').innerText = document.getElementById('edit_id').value ? "Editar Estudo" : "Criar Estudo Semanal";
+                
+                document.getElementById('grupo-arquivo').style.display = 'none';
+                document.getElementById('grupo-estudo-texto').style.display = 'block';
+                document.getElementById('tipo_estudo').value = 'texto';
+            }
         }
     }
 
@@ -295,7 +320,7 @@
     function verificarAdmin() {
         if (prompt("Senha da secretaria:") === "123") {
             goTo('admin-page');
-            mudarAbaAdmin('view'); // Inicia na aba de Visualizar
+            mudarAbaAdmin('view'); 
         }
         else alert("Senha incorreta.");
     }
@@ -303,10 +328,15 @@
     function renderizarListaAdmin(data) {
         const lista = document.getElementById('lista-estudos-admin');
         lista.innerHTML = "";
+        
+        // Coloca o mais novo primeiro
         Object.keys(data).reverse().forEach(id => {
+            const ehAnexo = data[id].tipo === 'anexo' || (data[id].arquivoURL && !data[id].resumo);
+            const badge = ehAnexo ? '🔗 Anexo' : '📖 Criado';
+            
             lista.innerHTML += `
                 <div class="admin-item">
-                    <span>${data[id].titulo}</span>
+                    <span><strong>${data[id].titulo}</strong> <br><small style="color:#d9a441">${badge}</small></span>
                     <div class="admin-btns">
                         <button class="btn-edit" onclick="carregarEstudoParaEdicao('${id}')">Editar</button>
                         <button class="btn-del" onclick="excluirEstudo('${id}')">Excluir</button>
@@ -320,33 +350,44 @@
         document.getElementById('edit_id').value = id;
         document.getElementById('adm_titulo').value = item.titulo;
         document.getElementById('adm_ref').value = item.referencias;
-        document.getElementById('adm_resumo').value = item.resumo;
-        document.getElementById('adm_conc').value = item.conclusao;
+        document.getElementById('adm_resumo').value = item.resumo || "";
+        document.getElementById('adm_conc').value = item.conclusao || "";
         document.getElementById('adm_file_link').value = item.arquivoURL || "";
         document.getElementById('adm_file_input').value = "";
         document.getElementById('btn-salvar-admin').innerText = "Salvar Alterações";
+        
         const container = document.getElementById('questions-list-admin');
         container.innerHTML = "";
-        item.perguntas.forEach((p, i) => {
-            const div = document.createElement('div');
-            div.className = 'q-container';
-            div.innerHTML = `<input type="text" class="q-input-adm" value="${p.q}"><textarea class="r-input-adm" rows="2" style="margin-top:5px">${p.r}</textarea>`;
-            container.appendChild(div);
-        });
-        mudarAbaAdmin('add'); // Muda para a aba de Criar/Editar automaticamente
+        if (item.perguntas && item.perguntas.length > 0) {
+            item.perguntas.forEach((p, i) => {
+                const div = document.createElement('div');
+                div.className = 'q-container';
+                div.innerHTML = `<input type="text" class="q-input-adm" value="${p.q}"><textarea class="r-input-adm" rows="2" style="margin-top:5px">${p.r}</textarea>`;
+                container.appendChild(div);
+            });
+        } else {
+            addQuestionAdmin(); 
+        }
+
+        
+        if (item.tipo === 'anexo' || (item.arquivoURL && (!item.resumo || item.resumo.trim() === ''))) {
+            mudarAbaAdmin('attach');
+        } else {
+            mudarAbaAdmin('create');
+        }
     }
 
     async function salvarEstudo() {
         const id = document.getElementById('edit_id').value;
         const btn = document.getElementById('btn-salvar-admin');
         const fileInput = document.getElementById('adm_file_input');
+        const tipoEstudo = document.getElementById('tipo_estudo').value;
         let arquivoURL = document.getElementById('adm_file_link').value;
 
         btn.disabled = true;
         btn.innerText = "Processando...";
 
-        // CORREÇÃO: Tratamento de erro e alteração da lógica de captura da URL
-        if (fileInput.files.length > 0) {
+        if (tipoEstudo === 'anexo' && fileInput.files.length > 0) {
             btn.innerText = "Subindo Arquivo...";
             try {
                 const file = fileInput.files[0];
@@ -355,25 +396,28 @@
                 arquivoURL = await snapshot.ref.getDownloadURL();
             } catch (error) {
                 console.error("Erro no upload:", error);
-                alert("Falha ao anexar o arquivo. Verifique se as permissões do Firebase Storage estão configuradas.");
+                alert("Falha ao anexar. Verifique se as permissões do Firebase Storage estão configuradas para leitura e gravação no site.");
                 btn.disabled = false;
                 btn.innerText = id ? "Salvar Alterações" : "Publicar Estudo";
-                return; // Impede que o código tente salvar sem ter finalizado o upload do anexo
+                return; 
             }
         }
 
         const perguntas = [];
-        document.querySelectorAll('.q-input-adm').forEach((q, i) => {
-            if(q.value) perguntas.push({ q: q.value, r: document.querySelectorAll('.r-input-adm')[i].value });
-        });
+        if (tipoEstudo === 'texto') {
+            document.querySelectorAll('.q-input-adm').forEach((q, i) => {
+                if(q.value) perguntas.push({ q: q.value, r: document.querySelectorAll('.r-input-adm')[i].value });
+            });
+        }
 
         const estudoData = {
             titulo: document.getElementById('adm_titulo').value,
             referencias: document.getElementById('adm_ref').value,
-            resumo: document.getElementById('adm_resumo').value,
-            conclusao: document.getElementById('adm_conc').value,
-            arquivoURL: arquivoURL,
+            resumo: tipoEstudo === 'texto' ? document.getElementById('adm_resumo').value : "",
+            conclusao: tipoEstudo === 'texto' ? document.getElementById('adm_conc').value : "",
+            arquivoURL: tipoEstudo === 'anexo' ? arquivoURL : "", 
             perguntas: perguntas,
+            tipo: tipoEstudo,
             timestamp: Date.now()
         };
 
@@ -388,12 +432,15 @@
     function resetAdminForm() {
         document.getElementById('edit_id').value = "";
         document.getElementById('adm_titulo').value = "";
+        document.getElementById('adm_ref').value = "";
+        document.getElementById('adm_resumo').value = "";
+        document.getElementById('adm_conc').value = "";
         document.getElementById('adm_file_link').value = "";
         document.getElementById('adm_file_input').value = "";
         document.getElementById('btn-salvar-admin').innerText = "Publicar Estudo";
         document.getElementById('btn-salvar-admin').disabled = false;
         document.getElementById('questions-list-admin').innerHTML = `<div class="q-container"><input type="text" class="q-input-adm" placeholder="Pergunta 1"><textarea class="r-input-adm" rows="2" style="margin-top:5px" placeholder="Resposta sugerida"></textarea></div>`;
-        mudarAbaAdmin('view'); // Retorna para a aba de visualização ao concluir
+        mudarAbaAdmin('view'); // Volta para aba de listagem
     }
 
     function addQuestionAdmin() {
@@ -403,7 +450,7 @@
         document.getElementById('questions-list-admin').appendChild(div);
     }
 
-    function excluirEstudo(id) { if(confirm("Excluir?")) db.ref('estudos/' + id).remove(); }
+    function excluirEstudo(id) { if(confirm("Tem certeza que deseja excluir esta publicação?")) db.ref('estudos/' + id).remove(); }
 
     function getNextThursday() {
         let d = new Date();
@@ -413,6 +460,30 @@
 
     function prepararLayoutModerno() {
         const box = document.getElementById('render-box');
+        
+        let conteudosHTML = "";
+        
+        if(estudoMaisRecente.tipo === 'anexo' || !estudoMaisRecente.resumo) {
+            conteudosHTML = `
+                <div class="doc-section">Aviso</div>
+                <p style="font-size:0.95rem; text-align:center;">Este estudo foi providenciado em PDF/Word. Retorne ao aplicativo e clique em "Baixar Arquivo Anexado".</p>
+            `;
+        } else {
+            conteudosHTML = `
+                <div class="doc-section">Introdução e Resumo</div>
+                <p style="font-size:0.95rem">${estudoMaisRecente.resumo}</p>
+                <div class="doc-section">Perguntas para Compartilhamento</div>
+                ${(estudoMaisRecente.perguntas || []).map((p, i) => `
+                    <div style="margin-bottom:10px">
+                        <div style="font-size:0.9rem"><strong>${i+1}. ${p.q}</strong></div>
+                        <div style="font-size:0.85rem; color:#475569; padding-left:10px; border-left:2px solid #e2e8f0">Sugestão: ${p.r}</div>
+                    </div>
+                `).join('')}
+                <div class="doc-section">Conclusão</div>
+                <p style="font-size:0.95rem">${estudoMaisRecente.conclusao}</p>
+            `;
+        }
+
         box.innerHTML = `
             <div class="doc-layout">
                 <div style="text-align:center; border-bottom: 2px solid #2563eb; padding-bottom:10px; margin-bottom:20px">
@@ -421,17 +492,7 @@
                 </div>
                 <h2 style="margin:0; font-size:1.4rem">${estudoMaisRecente.titulo}</h2>
                 <p style="color:#64748b; font-style:italic; font-size:0.9rem">${estudoMaisRecente.referencias}</p>
-                <div class="doc-section">Introdução e Resumo</div>
-                <p style="font-size:0.95rem">${estudoMaisRecente.resumo}</p>
-                <div class="doc-section">Perguntas para Compartilhamento</div>
-                ${estudoMaisRecente.perguntas.map((p, i) => `
-                    <div style="margin-bottom:10px">
-                        <div style="font-size:0.9rem"><strong>${i+1}. ${p.q}</strong></div>
-                        <div style="font-size:0.85rem; color:#475569; padding-left:10px; border-left:2px solid #e2e8f0">Sugestão: ${p.r}</div>
-                    </div>
-                `).join('')}
-                <div class="doc-section">Conclusão</div>
-                <p style="font-size:0.95rem">${estudoMaisRecente.conclusao}</p>
+                ${conteudosHTML}
                 <div style="margin-top:30px; border-top:1px solid #e2e8f0; padding-top:10px; font-size:0.7rem; color:#94a3b8; text-align:center">
                     Igreja Apostólica Monte Sião - Gerado em ${new Date().toLocaleDateString()}
                 </div>
@@ -458,6 +519,7 @@
         const celula = document.getElementById('select-celula').value;
         const data = getNextThursday();
         const box = document.getElementById('render-box');
+        
         box.innerHTML = `
             <div class="output-card">
                 <div class="output-header">
@@ -472,6 +534,7 @@
                 `).join('')}
                 <p style="text-align:center; font-size:10px; margin-top:20px; color:#94a3b8">Igreja Monte Sião • 2026</p>
             </div>`;
+            
         const canvas = await html2canvas(box);
         const link = document.createElement('a');
         link.download = `Escala_${celula}.jpg`;
@@ -479,23 +542,49 @@
         link.click();
     }
 
-    function compartilharWhatsAppEscala() {
+    // GERA A IMAGEM E ACIONA WHATSAPP
+    async function compartilharWhatsAppEscala() {
         const celula = document.getElementById('select-celula').value;
         const data = getNextThursday();
-        let texto = `*ESCALA CÉLULA ${celula}* (${data})\n\n`;
-        document.querySelectorAll('#campos-escala input').forEach(i => {
-            texto += `${i.previousElementSibling.innerText}: *${i.value || 'A definir'}*\n`;
-        });
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`);
+        const box = document.getElementById('render-box');
+        
+        box.innerHTML = `
+            <div class="output-card">
+                <div class="output-header">
+                    <h2 style="color:#2563eb; margin:0">CÉLULA ${celula}</h2>
+                    <p style="color:#d9a441; margin:5px 0">Escala de Tarefas - ${data}</p>
+                </div>
+                ${Array.from(document.querySelectorAll('#campos-escala input')).map(i => `
+                    <div class="output-row">
+                        <span>${i.previousElementSibling.innerText}</span>
+                        <strong>${i.value || '---'}</strong>
+                    </div>
+                `).join('')}
+                <p style="text-align:center; font-size:10px; margin-top:20px; color:#94a3b8">Igreja Monte Sião • 2026</p>
+            </div>`;
+            
+        const canvas = await html2canvas(box);
+        
+        // Uso da Web Share API 
+        canvas.toBlob(async (blob) => {
+            const file = new File([blob], `Escala_${celula}.jpg`, { type: 'image/jpeg' });
+            
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: `Escala da Célula ${celula}`,
+                        text: `Escala Atualizada - Célula ${celula}`
+                    });
+                } catch (error) {
+                    console.log('Cancelado pelo usuário ou ocorreu um erro:', error);
+                }
+            } else {
+                alert('Seu navegador web não suporta envio automático de imagem. Por favor, clique em "Baixar Imagem" e anexe no seu WhatsApp manualmente.');
+            }
+        }, 'image/jpeg');
     }
 
-    function compartilharWhatsAppEstudo() {
-        let texto = `*ESTUDO DA SEMANA - MONTE SIÃO*\n\n`;
-        texto += `📖 *Tema:* ${estudoMaisRecente.titulo}\n`;
-        texto += `📍 *Ref:* ${estudoMaisRecente.referencias}\n\n`;
-        texto += `Acesse o link do app para baixar o roteiro completo!`;
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`);
-    }
 </script>
 
 </body>
