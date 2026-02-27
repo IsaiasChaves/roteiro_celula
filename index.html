@@ -8,6 +8,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+
     <style>
         :root {
             --primary: #2563eb;
@@ -20,7 +24,7 @@
         * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         
-        .app-container { width: 95%; max-width: 500px; background: var(--card); border-radius: 24px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .app-container { width: 95%; max-width: 500px; background: var(--card); border-radius: 24px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); position: relative; }
 
         /* Página Inicial */
         #home-page { text-align: center; }
@@ -43,7 +47,7 @@
         .btn-back { background: #f1f5f9; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; margin-right: 15px; font-weight: 600; }
         
         label { display: block; margin: 15px 0 5px; font-size: 0.85rem; font-weight: 600; color: #475569; }
-        input, textarea { 
+        input, textarea, select { 
             width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; 
             background: #f8fafc; font-size: 1rem; transition: 0.2s;
         }
@@ -52,18 +56,49 @@
         .btn-add { background: transparent; color: var(--primary); border: 1px dashed var(--primary); padding: 8px; width: 100%; border-radius: 8px; cursor: pointer; margin-top: 10px; font-weight: 600; }
         .btn-main { 
             width: 100%; background: var(--primary); color: white; border: none; 
-            padding: 16px; border-radius: 12px; cursor: pointer; font-weight: 600; margin-top: 30px; 
+            padding: 16px; border-radius: 12px; cursor: pointer; font-weight: 600; margin-top: 15px; 
             font-size: 1rem; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
         }
+        .btn-whatsapp { background: #25d366 !important; box-shadow: 0 4px 6px rgba(37, 211, 102, 0.2) !important; }
+        .btn-secondary { background: #64748b; color: white; }
 
         /* Preview Oculto */
-        #capture-area { position: absolute; left: -9999px; width: 500px; background: white; padding: 30px; border-radius: 10px; }
+        #capture-area { position: absolute; left: -9999px; width: 600px; background: white; padding: 40px; }
         .output-card { border: 2px solid #e2e8f0; border-radius: 15px; padding: 25px; }
         .output-header { text-align: center; border-bottom: 2px solid var(--gold); margin-bottom: 20px; padding-bottom: 10px; }
         .output-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+        
+        .q-container { margin-bottom: 15px; border-left: 3px solid var(--primary); padding-left: 10px; }
+
+        .admin-list { margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; max-height: 150px; overflow-y: auto; }
+        .admin-item { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; }
+        .admin-btns button { padding: 4px 8px; border-radius: 5px; border: none; cursor: pointer; margin-left: 5px; font-size: 0.7rem; }
+        .btn-edit { background: var(--primary); color: white; }
+        .btn-del { background: #ef4444; color: white; }
+
+        /* Modal de Visualização */
+        #preview-modal { 
+            display: none; position: fixed; top:0; left:0; width:100%; height:100%; 
+            background: rgba(0,0,0,0.8); z-index: 9999; overflow-y: auto; padding: 20px;
+        }
+        .modal-content { background: white; max-width: 600px; margin: 0 auto; border-radius: 15px; padding: 20px; position: relative; }
+        .close-modal { position: absolute; top: 10px; right: 20px; font-size: 24px; cursor: pointer; }
+
+        /* Layout Moderno Documental */
+        .doc-layout { color: #334155; line-height: 1.6; }
+        .doc-header { border-bottom: 2px solid #2563eb; margin-bottom: 20px; }
+        .doc-section { margin-top: 15px; font-weight: bold; color: #2563eb; text-transform: uppercase; font-size: 0.8rem; }
     </style>
 </head>
 <body>
+
+<div id="preview-modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="fecharPreview()">&times;</span>
+        <div id="visualizar-area"></div>
+        <button class="btn-main" onclick="fecharPreview()">Fechar Visualização</button>
+    </div>
+</div>
 
 <div class="app-container">
     
@@ -72,14 +107,30 @@
             <h1>Monte Sião</h1>
             <p>Programação de Célula</p>
         </div>
+
+        <label>Escolha sua Célula</label>
+        <select id="select-celula" style="margin-bottom: 30px;" onchange="atualizarTextoPaginas()">
+            <option value="KAIROS">Kairos</option>
+            <option value="JEOVÁ JIRÊ">Jeová Jirê</option>
+            <option value="RESTAURAR">Restaurar</option>
+            <option value="EMANUEL">Emanuel</option>
+            <option value="ELOHIM">Elohim</option>
+            <option value="MARANATA">Maranata</option>
+            <option value="YAHVEH">Yahveh</option>
+        </select>
+
         <div class="menu-grid">
             <div class="menu-card" onclick="goTo('estudo-page')">
                 <h3>📖 Estudo da Semana</h3>
-                <p>Gere um PDF com o roteiro da palavra.</p>
+                <p>Veja o roteiro oficial e baixe os arquivos.</p>
             </div>
             <div class="menu-card" onclick="goTo('kairos-page')">
-                <h3>⏳ Célula Kairos</h3>
-                <p>Gere a imagem da escala de serviço.</p>
+                <h3 id="card-escala-titulo">⏳ Célula Kairos</h3>
+                <p>Gere a escala e envie no WhatsApp.</p>
+            </div>
+            <div class="menu-card" onclick="verificarAdmin()" style="border-left: 4px solid var(--gold);">
+                <h3>⚙️ Área do Administrador</h3>
+                <p>Gerenciar estudos e arquivos PDF/Word.</p>
             </div>
         </div>
     </div>
@@ -90,136 +141,362 @@
             <h2 style="margin:0; font-size: 1.2rem;">Roteiro de Estudo</h2>
         </div>
         
-        <label>Título</label>
-        <input type="text" id="estudo_titulo" placeholder="Ex: Maturidade Cristã">
-        
-        <label>Referências</label>
-        <input type="text" id="estudo_ref" placeholder="Ex: Efésios 4:13-15">
-        
-        <label>Resumo</label>
-        <textarea id="estudo_resumo" rows="3"></textarea>
-
-        <label>Perguntas</label>
-        <div id="questions-list">
-            <input type="text" class="q-input" style="margin-bottom: 8px;" placeholder="Pergunta 1">
+        <div id="estudo-atual-info" style="margin-bottom: 20px; padding: 15px; background: #f1f5f9; border-radius: 12px;">
+            <p>Carregando estudo mais recente...</p>
         </div>
-        <button class="btn-add" onclick="addQuestion()">+ Nova Pergunta</button>
 
-        <label>Conclusão</label>
-        <textarea id="estudo_conc" rows="2"></textarea>
+        <button class="btn-main" style="background:#64748b" onclick="visualizarEstudo()">Visualizar Estudo</button>
+        <button class="btn-main" onclick="gerarPDF()">Baixar Estudo em PDF</button>
+        <div id="area-arquivo-extra"></div>
+        <button class="btn-main btn-whatsapp" onclick="compartilharWhatsAppEstudo()">Enviar para WhatsApp</button>
+    </div>
 
-        <button class="btn-main" onclick="gerarPDF()">Gerar Estudo em PDF</button>
+    <div id="admin-page" class="page">
+        <div class="header-action">
+            <button class="btn-back" onclick="resetAdminForm(); goTo('home-page')">←</button>
+            <h2 id="admin-title" style="margin:0; font-size: 1.2rem;">Visualizar Estudos</h2>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button class="btn-main" id="tab-view" onclick="mudarAbaAdmin('view')" style="margin-top:0">Visualizar</button>
+            <button class="btn-main btn-secondary" id="tab-add" onclick="mudarAbaAdmin('add')" style="margin-top:0">Criar / Anexar</button>
+        </div>
+
+        <div id="admin-view-section">
+            <label>Gerenciar Publicações</label>
+            <div id="lista-estudos-admin" class="admin-list" style="max-height: 300px;"></div>
+        </div>
+        
+        <div id="admin-add-section" style="display: none;">
+            <input type="hidden" id="edit_id">
+            <label>Título do Estudo</label>
+            <input type="text" id="adm_titulo" placeholder="Ex: O Poder da Oração">
+            
+            <label>Referências Bíblicas</label>
+            <input type="text" id="adm_ref" placeholder="Ex: Mateus 6:5-13">
+
+            <label>Anexar PDF/Word (Estudo Completo)</label>
+            <input type="file" id="adm_file_input">
+            <input type="hidden" id="adm_file_link">
+            
+            <label>Resumo/Introdução</label>
+            <textarea id="adm_resumo" rows="3"></textarea>
+
+            <label>Perguntas para Compartilhamento</label>
+            <div id="questions-list-admin">
+                <div class="q-container">
+                    <input type="text" class="q-input-adm" placeholder="Pergunta 1">
+                    <textarea class="r-input-adm" rows="2" style="margin-top:5px" placeholder="Resposta sugerida"></textarea>
+                </div>
+            </div>
+            <button class="btn-add" onclick="addQuestionAdmin()">+ Nova Pergunta</button>
+
+            <label>Conclusão</label>
+            <textarea id="adm_conc" rows="2"></textarea>
+
+            <button id="btn-salvar-admin" class="btn-main" onclick="salvarEstudo()">Publicar Estudo</button>
+        </div>
     </div>
 
     <div id="kairos-page" class="page">
         <div class="header-action">
             <button class="btn-back" onclick="goTo('home-page')">←</button>
-            <h2 style="margin:0; font-size: 1.2rem;">Escala Kairos</h2>
+            <h2 id="page-escala-titulo" style="margin:0; font-size: 1.2rem;">Escala Kairos</h2>
         </div>
 
-        <label>🤝 Recepção</label>
-        <input type="text" id="k_recepcao">
-        
-        <label>🙏 Oração Inicial</label>
-        <input type="text" id="k_oracao">
+        <div id="campos-escala">
+            <label>🤝 Recepção</label><input type="text" id="k_recepcao">
+            <label>🙏 Oração Inicial</label><input type="text" id="k_oracao">
+            <label>🎸 Louvor</label><input type="text" id="k_musica">
+            <label>😁 Dinâmica</label><input type="text" id="k_dinamica">
+            <label>💰 Oferta</label><input type="text" id="k_oferta">
+            <label>🍞 Cesta do Amor</label><input type="text" id="k_cesta">
+            <label>📦 Pedidos</label><input type="text" id="k_caixinha">
+            <label>🎤 Compartilhamento</label><input type="text" id="k_compartilhamento">
+        </div>
 
-        <label>📦 Caixinha da Fé</label>
-        <input type="text" id="k_caixinha">
-
-        <label>🧺 Cesta do Amor</label>
-        <input type="text" id="k_cesta">
-
-        <label>💰 Oferta</label>
-        <input type="text" id="k_oferta">
-
-        <label>🎸 Música</label>
-        <input type="text" id="k_musica">
-
-        <label>🎤 Compartilhamento (Palavra)</label>
-        <input type="text" id="k_compartilhamento" placeholder="Quem vai falar?">
-
-        <button class="btn-main" onclick="gerarImagem()">Baixar Imagem para WhatsApp</button>
+        <button class="btn-main" onclick="gerarImagem()">Baixar Imagem</button>
+        <button class="btn-main btn-whatsapp" onclick="compartilharWhatsAppEscala()">Enviar para WhatsApp</button>
     </div>
 
 </div>
 
 <div id="capture-area">
-    <div id="render-box" class="output-card"></div>
+    <div id="render-box"></div>
 </div>
 
 <script>
+    // --- CONFIGURAÇÃO FIREBASE ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyBTi9jlqZb8cgytEf0JiFN2bgH-ec6E9Q4",
+        authDomain: "progamacao-celula.firebaseapp.com",
+        databaseURL: "https://progamacao-celula-default-rtdb.firebaseio.com",
+        projectId: "progamacao-celula",
+        storageBucket: "progamacao-celula.firebasestorage.app",
+        messagingSenderId: "658789867886",
+        appId: "1:658789867886:web:9fbeb8dd41d8ab5340217f",
+        measurementId: "G-TJBVVQKVLB"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const storage = firebase.storage();
+
+    let estudoMaisRecente = null;
+    let todosEstudos = {};
+
+    db.ref('estudos').on('value', (snapshot) => {
+        const data = snapshot.val() || {};
+        todosEstudos = data;
+        const keys = Object.keys(data);
+        if(keys.length > 0) {
+            const lastKey = keys[keys.length - 1];
+            estudoMaisRecente = data[lastKey];
+            document.getElementById('estudo-atual-info').innerHTML = `
+                <strong style="color:var(--primary)">${estudoMaisRecente.titulo}</strong><br>
+                <small>${estudoMaisRecente.referencias}</small>
+            `;
+            const areaExtra = document.getElementById('area-arquivo-extra');
+            if(estudoMaisRecente.arquivoURL) {
+                areaExtra.innerHTML = `<button class="btn-main" style="background:var(--gold)" onclick="window.open('${estudoMaisRecente.arquivoURL}', '_blank')">📄 Baixar Arquivo Anexado (Word/PDF)</button>`;
+            } else { areaExtra.innerHTML = ''; }
+        }
+        renderizarListaAdmin(data);
+    });
+
     function goTo(pageId) {
         document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
         document.getElementById(pageId).style.display = 'block';
     }
 
-    function addQuestion() {
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.className = 'q-input';
-        input.style.marginBottom = '8px';
-        input.placeholder = `Pergunta ${document.querySelectorAll('.q-input').length + 1}`;
-        document.getElementById('questions-list').appendChild(input);
+    // FUNÇÃO ADICIONADA: Alternar Abas no Administrador
+    function mudarAbaAdmin(aba) {
+        if (aba === 'view') {
+            document.getElementById('admin-view-section').style.display = 'block';
+            document.getElementById('admin-add-section').style.display = 'none';
+            document.getElementById('tab-view').classList.remove('btn-secondary');
+            document.getElementById('tab-add').classList.add('btn-secondary');
+            document.getElementById('admin-title').innerText = "Visualizar Estudos";
+        } else {
+            document.getElementById('admin-view-section').style.display = 'none';
+            document.getElementById('admin-add-section').style.display = 'block';
+            document.getElementById('tab-add').classList.remove('btn-secondary');
+            document.getElementById('tab-view').classList.add('btn-secondary');
+            document.getElementById('admin-title').innerText = document.getElementById('edit_id').value ? "Editar Estudo" : "Novo Estudo";
+        }
     }
 
-    async function gerarPDF() {
-        const render = document.getElementById('render-box');
-        const qs = Array.from(document.querySelectorAll('.q-input')).map(i => i.value).filter(v => v !== '');
-        
-        render.innerHTML = `
-            <div class="output-header">
-                <h1 style="color:#2563eb; margin:0">MONTE SIÃO</h1>
-                <p style="color:#d9a441; font-weight:bold; margin:5px 0">ESTUDO DE CÉLULA</p>
-            </div>
-            <h3 style="text-align:center">${document.getElementById('estudo_titulo').value}</h3>
-            <p style="text-align:center; font-style:italic; color:#64748b">${document.getElementById('estudo_ref').value}</p>
-            <p><strong>Resumo:</strong> ${document.getElementById('estudo_resumo').value}</p>
-            <p><strong>Perguntas:</strong></p>
-            <ul>${qs.map(q => `<li>${q}</li>`).join('')}</ul>
-            <p><strong>Conclusão:</strong> ${document.getElementById('estudo_conc').value}</p>
-        `;
+    function atualizarTextoPaginas() {
+        const celula = document.getElementById('select-celula').value;
+        document.getElementById('card-escala-titulo').innerText = `⏳ Célula ${celula}`;
+        document.getElementById('page-escala-titulo').innerText = `Escala ${celula}`;
+    }
 
-        const canvas = await html2canvas(render);
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF('p', 'mm', 'a4');
+    function verificarAdmin() {
+        if (prompt("Senha da secretaria:") === "123") {
+            goTo('admin-page');
+            mudarAbaAdmin('view'); // Inicia na aba de Visualizar
+        }
+        else alert("Senha incorreta.");
+    }
+
+    function renderizarListaAdmin(data) {
+        const lista = document.getElementById('lista-estudos-admin');
+        lista.innerHTML = "";
+        Object.keys(data).reverse().forEach(id => {
+            lista.innerHTML += `
+                <div class="admin-item">
+                    <span>${data[id].titulo}</span>
+                    <div class="admin-btns">
+                        <button class="btn-edit" onclick="carregarEstudoParaEdicao('${id}')">Editar</button>
+                        <button class="btn-del" onclick="excluirEstudo('${id}')">Excluir</button>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function carregarEstudoParaEdicao(id) {
+        const item = todosEstudos[id];
+        document.getElementById('edit_id').value = id;
+        document.getElementById('adm_titulo').value = item.titulo;
+        document.getElementById('adm_ref').value = item.referencias;
+        document.getElementById('adm_resumo').value = item.resumo;
+        document.getElementById('adm_conc').value = item.conclusao;
+        document.getElementById('adm_file_link').value = item.arquivoURL || "";
+        document.getElementById('adm_file_input').value = "";
+        document.getElementById('btn-salvar-admin').innerText = "Salvar Alterações";
+        const container = document.getElementById('questions-list-admin');
+        container.innerHTML = "";
+        item.perguntas.forEach((p, i) => {
+            const div = document.createElement('div');
+            div.className = 'q-container';
+            div.innerHTML = `<input type="text" class="q-input-adm" value="${p.q}"><textarea class="r-input-adm" rows="2" style="margin-top:5px">${p.r}</textarea>`;
+            container.appendChild(div);
+        });
+        mudarAbaAdmin('add'); // Muda para a aba de Criar/Editar automaticamente
+    }
+
+    async function salvarEstudo() {
+        const id = document.getElementById('edit_id').value;
+        const btn = document.getElementById('btn-salvar-admin');
+        const fileInput = document.getElementById('adm_file_input');
+        let arquivoURL = document.getElementById('adm_file_link').value;
+
+        btn.disabled = true;
+        btn.innerText = "Processando...";
+
+        // CORREÇÃO: Tratamento de erro e alteração da lógica de captura da URL
+        if (fileInput.files.length > 0) {
+            btn.innerText = "Subindo Arquivo...";
+            try {
+                const file = fileInput.files[0];
+                const storageRef = storage.ref('arquivos/' + Date.now() + "_" + file.name);
+                const snapshot = await storageRef.put(file);
+                arquivoURL = await snapshot.ref.getDownloadURL();
+            } catch (error) {
+                console.error("Erro no upload:", error);
+                alert("Falha ao anexar o arquivo. Verifique se as permissões do Firebase Storage estão configuradas.");
+                btn.disabled = false;
+                btn.innerText = id ? "Salvar Alterações" : "Publicar Estudo";
+                return; // Impede que o código tente salvar sem ter finalizado o upload do anexo
+            }
+        }
+
+        const perguntas = [];
+        document.querySelectorAll('.q-input-adm').forEach((q, i) => {
+            if(q.value) perguntas.push({ q: q.value, r: document.querySelectorAll('.r-input-adm')[i].value });
+        });
+
+        const estudoData = {
+            titulo: document.getElementById('adm_titulo').value,
+            referencias: document.getElementById('adm_ref').value,
+            resumo: document.getElementById('adm_resumo').value,
+            conclusao: document.getElementById('adm_conc').value,
+            arquivoURL: arquivoURL,
+            perguntas: perguntas,
+            timestamp: Date.now()
+        };
+
+        const ref = id ? db.ref('estudos/' + id) : db.ref('estudos').push();
+        ref.set(estudoData).then(() => { 
+            alert("Sucesso!"); 
+            resetAdminForm(); 
+            btn.disabled = false;
+        });
+    }
+
+    function resetAdminForm() {
+        document.getElementById('edit_id').value = "";
+        document.getElementById('adm_titulo').value = "";
+        document.getElementById('adm_file_link').value = "";
+        document.getElementById('adm_file_input').value = "";
+        document.getElementById('btn-salvar-admin').innerText = "Publicar Estudo";
+        document.getElementById('btn-salvar-admin').disabled = false;
+        document.getElementById('questions-list-admin').innerHTML = `<div class="q-container"><input type="text" class="q-input-adm" placeholder="Pergunta 1"><textarea class="r-input-adm" rows="2" style="margin-top:5px" placeholder="Resposta sugerida"></textarea></div>`;
+        mudarAbaAdmin('view'); // Retorna para a aba de visualização ao concluir
+    }
+
+    function addQuestionAdmin() {
+        const div = document.createElement('div');
+        div.className = 'q-container';
+        div.innerHTML = `<input type="text" class="q-input-adm" placeholder="Pergunta"><textarea class="r-input-adm" rows="2" style="margin-top:5px" placeholder="Resposta sugerida"></textarea>`;
+        document.getElementById('questions-list-admin').appendChild(div);
+    }
+
+    function excluirEstudo(id) { if(confirm("Excluir?")) db.ref('estudos/' + id).remove(); }
+
+    function getNextThursday() {
+        let d = new Date();
+        d.setDate(d.getDate() + ((4 - d.getDay() + 7) % 7 || 7));
+        return d.toLocaleDateString('pt-BR');
+    }
+
+    function prepararLayoutModerno() {
+        const box = document.getElementById('render-box');
+        box.innerHTML = `
+            <div class="doc-layout">
+                <div style="text-align:center; border-bottom: 2px solid #2563eb; padding-bottom:10px; margin-bottom:20px">
+                    <h1 style="margin:0; color:#2563eb; letter-spacing:-1px">MONTE SIÃO</h1>
+                    <span style="font-size:0.7rem; font-weight:bold; color:#d9a441">GUIA DE ESTUDO PARA CÉLULAS</span>
+                </div>
+                <h2 style="margin:0; font-size:1.4rem">${estudoMaisRecente.titulo}</h2>
+                <p style="color:#64748b; font-style:italic; font-size:0.9rem">${estudoMaisRecente.referencias}</p>
+                <div class="doc-section">Introdução e Resumo</div>
+                <p style="font-size:0.95rem">${estudoMaisRecente.resumo}</p>
+                <div class="doc-section">Perguntas para Compartilhamento</div>
+                ${estudoMaisRecente.perguntas.map((p, i) => `
+                    <div style="margin-bottom:10px">
+                        <div style="font-size:0.9rem"><strong>${i+1}. ${p.q}</strong></div>
+                        <div style="font-size:0.85rem; color:#475569; padding-left:10px; border-left:2px solid #e2e8f0">Sugestão: ${p.r}</div>
+                    </div>
+                `).join('')}
+                <div class="doc-section">Conclusão</div>
+                <p style="font-size:0.95rem">${estudoMaisRecente.conclusao}</p>
+                <div style="margin-top:30px; border-top:1px solid #e2e8f0; padding-top:10px; font-size:0.7rem; color:#94a3b8; text-align:center">
+                    Igreja Apostólica Monte Sião - Gerado em ${new Date().toLocaleDateString()}
+                </div>
+            </div>`;
+    }
+
+    function visualizarEstudo() {
+        prepararLayoutModerno();
+        document.getElementById('visualizar-area').innerHTML = document.getElementById('render-box').innerHTML;
+        document.getElementById('preview-modal').style.display = 'block';
+    }
+
+    function fecharPreview() { document.getElementById('preview-modal').style.display = 'none'; }
+
+    async function gerarPDF() {
+        prepararLayoutModerno();
+        const canvas = await html2canvas(document.getElementById('render-box'), { scale: 2 });
+        const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
         pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 190, 0);
-        pdf.save("Estudo_MonteSiao.pdf");
+        pdf.save(`Estudo_${estudoMaisRecente.titulo}.pdf`);
     }
 
     async function gerarImagem() {
-        const render = document.getElementById('render-box');
-        const fields = [
-            ['🤝 Recepção', 'k_recepcao'],
-            ['🙏 Oração Inicial', 'k_oracao'],
-            ['📦 Caixinha da Fé', 'k_caixinha'],
-            ['🧺 Cesta do Amor', 'k_cesta'],
-            ['💰 Oferta', 'k_oferta'],
-            ['🎸 Música', 'k_musica'],
-            ['🎤 Compartilhamento', 'k_compartilhamento']
-        ];
-
-        render.innerHTML = `
-            <div class="output-header">
-                <h2 style="color:#2563eb; margin:0">CÉLULA KAIROS</h2>
-                <p style="color:#d9a441; margin:5px 0">Escala de Serviço</p>
-            </div>
-            ${fields.map(f => `
-                <div class="output-row">
-                    <span>${f[0]}</span>
-                    <strong>${document.getElementById(f[1]).value || '---'}</strong>
+        const celula = document.getElementById('select-celula').value;
+        const data = getNextThursday();
+        const box = document.getElementById('render-box');
+        box.innerHTML = `
+            <div class="output-card">
+                <div class="output-header">
+                    <h2 style="color:#2563eb; margin:0">CÉLULA ${celula}</h2>
+                    <p style="color:#d9a441; margin:5px 0">Escala de Tarefas - ${data}</p>
                 </div>
-            `).join('')}
-            <p style="text-align:center; font-size:12px; margin-top:30px; color:#64748b">Monte Sião • 2026</p>
-        `;
-
-        const canvas = await html2canvas(render);
+                ${Array.from(document.querySelectorAll('#campos-escala input')).map(i => `
+                    <div class="output-row">
+                        <span>${i.previousElementSibling.innerText}</span>
+                        <strong>${i.value || '---'}</strong>
+                    </div>
+                `).join('')}
+                <p style="text-align:center; font-size:10px; margin-top:20px; color:#94a3b8">Igreja Monte Sião • 2026</p>
+            </div>`;
+        const canvas = await html2canvas(box);
         const link = document.createElement('a');
-        link.download = 'Escala_Kairos.jpg';
-        link.href = canvas.toDataURL('image/jpeg', 0.9);
+        link.download = `Escala_${celula}.jpg`;
+        link.href = canvas.toDataURL('image/jpeg');
         link.click();
+    }
+
+    function compartilharWhatsAppEscala() {
+        const celula = document.getElementById('select-celula').value;
+        const data = getNextThursday();
+        let texto = `*ESCALA CÉLULA ${celula}* (${data})\n\n`;
+        document.querySelectorAll('#campos-escala input').forEach(i => {
+            texto += `${i.previousElementSibling.innerText}: *${i.value || 'A definir'}*\n`;
+        });
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`);
+    }
+
+    function compartilharWhatsAppEstudo() {
+        let texto = `*ESTUDO DA SEMANA - MONTE SIÃO*\n\n`;
+        texto += `📖 *Tema:* ${estudoMaisRecente.titulo}\n`;
+        texto += `📍 *Ref:* ${estudoMaisRecente.referencias}\n\n`;
+        texto += `Acesse o link do app para baixar o roteiro completo!`;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`);
     }
 </script>
 
 </body>
-
 </html>
